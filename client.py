@@ -2,70 +2,50 @@
 from socket import *
 import time
 
-# Set up socket
+#AF_INET and SOCK_DGRAM setup
 clientSocket = socket(AF_INET, SOCK_DGRAM)
 
-# Set timeout to 1 second
+# 1 second timeout as the instructions say
 clientSocket.settimeout(1)
 
-# Server address and port
+#MY IP IS HERE
 serverAddress = ('192.168.1.77', 12000)
 
-# Number of pings to send
-numPings = 10
+#Sequence num here
+seq = 1
 
-# Initialize sequence number
-sequenceNumber = 1
 
-# Initialize variables for RTT statistics
-totalRTT = 0
-minRTT = float('inf')
-maxRTT = float('-inf')
-lostPackets = 0
-
-# Send pings
-for i in range(numPings):
-    # Record the time the message is sent
-    sendTime = time.time()
+# Send 10 pings
+for i in range(10):
+    # When was the message sent
+    start = time.time()
     
-    # Format the message
-    message = f'Ping {sequenceNumber} {sendTime}'
+    # State the time
+    message = 'Ping number' + str(seq) + " " + time.ctime(start)
     
-    # Send the message to the server
+    # Send msg to server
     clientSocket.sendto(message.encode(), serverAddress)
     
     try:
         # Receive the response from the server
         response, serverAddress = clientSocket.recvfrom(1024)
         
-        # Record the time the response is received
-        receiveTime = time.time()
+        # Time 2 receive
+        end = time.time()
         
-        # Calculate RTT
-        rtt = receiveTime - sendTime
+        # RTT formula t2 -t1 = RTT
+        rtt = end - start
         
-        # Update RTT statistics
-        totalRTT += rtt
-        if rtt < minRTT:
-            minRTT = rtt
-        if rtt > maxRTT:
-            maxRTT = rtt
-        
-        # Print response and RTT
-        print(f'Response from server: {response.decode()}, RTT: {rtt:.6f} seconds')
+        # Print the response/ RTT
+        print(f'Response from server: {response.decode()}, RTT: {rtt:.4f} seconds')
     except timeout:
-        # If timeout occurs, print "Request timed out"
+        # print "Request timed out" if timeout
         print("Request timed out")
-        lostPackets += 1
     
-    # Increment sequence number
-    sequenceNumber += 1
+    # Record sequence
+    seq += 1
 
-# Print RTT statistics
-print(f'\nMinimum RTT: {minRTT:.6f} seconds')
-print(f'Maximum RTT: {maxRTT:.6f} seconds')
-print(f'Average RTT: {totalRTT / (numPings - lostPackets):.6f} seconds')
-print(f'Packet loss rate: {(lostPackets / numPings) * 100:.2f}%')
 
-# Close the socket
+
+#Close
 clientSocket.close()
